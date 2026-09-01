@@ -4,13 +4,15 @@ A [Claude Code](https://claude.com/claude-code) skill that turns a PR diff into 
 
 No hosted viewer, no Claude Artifacts, **no API key.** The page's chat is answered by the Claude Code session that built it: the browser talks to a tiny local Python server, the server queues your question, the agent (watching the queue) answers it by actually reading the code, and the page polls for the reply.
 
+Built on top of [Builder.io](https://www.builder.io)'s [`visual-recap`](https://github.com/BuilderIO/agent-native) skill — this is a localhost-first fork, not an independent implementation. All credit for the original recap concept (turning a diff into structured, block-based review content) goes to Builder.io; see [Why](#why) below for exactly what changed and why.
+
 <p align="center">
   <em>screenshot goes here</em>
 </p>
 
 ## Why
 
-[`visual-recap`](https://github.com/BuilderIO/agent-native) (the skill this was forked from) publishes recaps through a hosted Plan viewer with polished ERD/diff renderers — genuinely nicer output, but you can't extend it, and there's no way to run it on localhost. Claude Artifacts' `sample` capability gives a page live Claude chat, but only when served through claude.ai, and it bills per call.
+[`visual-recap`](https://github.com/BuilderIO/agent-native), by Builder.io, publishes recaps through a hosted Plan viewer with polished ERD/diff renderers — genuinely nicer output, but you can't extend it, and there's no way to run it on localhost. Claude Artifacts' `sample` capability gives a page live Claude chat, but only when served through claude.ai, and it bills per call.
 
 `local-recap` trades the polished renderers for full locality: everything is one static HTML page plus a ~150-line stdlib-only Python server. The tradeoff is real — chat answers only arrive while a Claude Code session is actively watching the queue. This is a personal dev tool, not a hosted service.
 

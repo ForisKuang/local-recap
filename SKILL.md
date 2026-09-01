@@ -123,18 +123,32 @@ is a personal/dev tool, not a service you leave running unattended.
    `pr`/`repo` keys) to leave "Comment on PR" disabled with a clear error
    rather than guessing a target repo.
 
-4. **Start the server.**
-   `python3 ~/.claude/skills/local-recap/scripts/server.py <content-dir> [port]`
-   in the background (`run_in_background: true`). Pick an actually-free port
-   first (`lsof -i :<port>` before binding) -- sandboxed dev environments
-   often already occupy common ports like 8765 with an unrelated proxy, and
-   the failure mode (connection refused, or worse, a stray unrelated
-   service answering) is confusing to debug after the fact. It serves
-   `index.html` at `/`, `POST /ask` + `GET /answer/<id>` backed by
-   `<content-dir>/queue/`, and `POST /comment` (shells out to `gh pr comment
-   <pr> -R <repo> -F -`, using whatever `gh` account is already
-   authenticated -- never store or ask for a token). Report the
-   `http://127.0.0.1:<port>` URL and open it if a browser tool is available.
+4. **Locate `server.py`, then start it.** This skill can be installed either
+   personally (`~/.claude/skills/local-recap/`) or per-project
+   (`<repo>/.claude/skills/local-recap/`), so never hardcode the personal
+   path -- resolve it fresh each run by checking, in order: each ancestor of
+   the current directory from `$PWD` up to `/` for
+   `.claude/skills/local-recap/scripts/server.py`, then falling back to
+   `~/.claude/skills/local-recap/scripts/server.py`. One-liner:
+   ```bash
+   SERVER_PY=$(d="$PWD"; while [ "$d" != "/" ]; do
+     f="$d/.claude/skills/local-recap/scripts/server.py"
+     [ -f "$f" ] && echo "$f" && break
+     d=$(dirname "$d")
+   done)
+   [ -z "$SERVER_PY" ] && SERVER_PY="$HOME/.claude/skills/local-recap/scripts/server.py"
+   ```
+   Then `python3 "$SERVER_PY" <content-dir> [port]` in the background
+   (`run_in_background: true`). Pick an actually-free port first (`lsof -i
+   :<port>` before binding) -- sandboxed dev environments often already
+   occupy common ports like 8765 with an unrelated proxy, and the failure
+   mode (connection refused, or worse, a stray unrelated service answering)
+   is confusing to debug after the fact. The server serves `index.html` at
+   `/`, `POST /ask` + `GET /answer/<id>` backed by `<content-dir>/queue/`,
+   and `POST /comment` (shells out to `gh pr comment <pr> -R <repo> -F -`,
+   using whatever `gh` account is already authenticated -- never store or
+   ask for a token). Report the `http://127.0.0.1:<port>` URL and open it if
+   a browser tool is available.
 
 5. **Watch the queue.** Start a `Monitor` with
    `persistent: true` on:
