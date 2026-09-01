@@ -7,8 +7,10 @@ No hosted viewer, no Claude Artifacts, **no API key.** The page's chat is answer
 Built on top of [Builder.io](https://www.builder.io)'s [`visual-recap`](https://github.com/BuilderIO/agent-native) skill — this is a localhost-first fork, not an independent implementation. All credit for the original recap concept (turning a diff into structured, block-based review content) goes to Builder.io; see [Why](#why) below for exactly what changed and why.
 
 <p align="center">
-  <em>screenshot goes here</em>
+  <img src="docs/demo.gif" alt="Clicking a block to attach it as chat context, then asking Claude a question and getting a live answer, all in the local-recap page." width="900" />
 </p>
+
+<p align="center"><sub>Demo runs against the fictional example in <code>example/</code> — no real repo's data.</sub></p>
 
 ## Why
 
