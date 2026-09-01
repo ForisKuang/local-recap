@@ -23,6 +23,8 @@ Built on top of [Builder.io](https://www.builder.io)'s [`visual-recap`](https://
 - **Click any table, file, or diff** to attach it as context, then ask Claude a question about it in the side panel. Answered live, grounded in the actual repo (not guessed from the name).
 - **Right-click any block** for a menu: add to chat context, or jump straight to the real lines on GitHub (`blob/<sha>/<path>#L<start>-L<end>` for exact lines, or the PR's Files-changed tab for a whole file).
 - **Per-line annotation markers**: hover a small "i" badge on a diff/code line to see a note about *why* that line matters, not just what it does.
+- **IDE-style syntax highlighting**: code and diff blocks get real token coloring (keywords, strings, comments, numbers), not one flat color plus red/green diff tint. Hand-rolled with a small regex tokenizer, no CDN highlighter pulled in.
+- **Resizable chat rail**: drag the handle on the rail's left edge to widen it for a longer conversation or a big pasted answer; the width persists across reloads.
 - **"Comment on PR" mode**: write a comment, review the exact body in a confirmation panel, and only on explicit confirm does it post a real comment to the real PR via your already-authenticated `gh` CLI. Never posts silently.
 
 ## Install
