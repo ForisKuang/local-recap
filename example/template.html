@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #14181f;
+    --muted: #5b6472;
+    --line: #dadfe3;
+    --paper: #f3f4f1;
+    --card: #ffffff;
+    --accent: #c2760f;
+    --accent-soft: #f3e2c6;
+    --accent-fg: #ffffff;
+    --good: #2e7d4f;
+    --good-soft: #e0f0e6;
+    --bad: #b23b3b;
+    --bad-soft: #f7e4e4;
+    --radius: 10px;
+    --font-display: "Manrope", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #eceef1;
+      --muted: #9aa3af;
+      --line: #2a2f37;
+      --paper: #14171c;
+      --card: #1b1f26;
+      --accent: #e0973a;
+      --accent-soft: #3a2c15;
+      --accent-fg: #14171c;
+      --good: #4caf6e;
+      --good-soft: #1c2e22;
+      --bad: #e06060;
+      --bad-soft: #331f1f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #eceef1;
+    --muted: #9aa3af;
+    --line: #2a2f37;
+    --paper: #14171c;
+    --card: #1b1f26;
+    --accent: #e0973a;
+    --accent-soft: #3a2c15;
+    --accent-fg: #14171c;
+    --good: #4caf6e;
+    --good-soft: #1c2e22;
+    --bad: #e06060;
+    --bad-soft: #331f1f;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .layout {
+    min-height: 100vh;
+  }
+  .main {
+    padding: 40px 48px 80px;
+    max-width: 920px;
+    margin-right: 380px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-size: 30px;
+    font-weight: 800;
+    margin: 0 0 14px;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 19px;
+    font-weight: 700;
+    margin: 44px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid var(--line);
+  }
+  .brief { color: var(--muted); font-size: 15px; max-width: 62ch; margin: 0 0 16px; }
+  .stat-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .stat-pill {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .narrative { color: var(--ink); }
+  .narrative code { font-family: var(--font-mono); font-size: 0.9em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+
+  .arch-row { display: flex; flex-direction: column; gap: 16px; }
+  .arch-panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); padding: 16px; }
+  .arch-panel-label { font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 12px; }
+  .arch-panel-nodes { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+  .arch-node {
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--paper);
+    font-family: var(--font-mono); font-size: 12.5px; cursor: pointer; min-width: 130px;
+    transition: border-color .12s, background .12s;
+  }
+  .arch-node:hover, .arch-node:focus-visible { border-color: var(--accent); background: var(--accent-soft); outline: none; }
+  .arch-node-label { font-weight: 600; }
+  .arch-node-sub { color: var(--muted); margin-top: 3px; font-size: 11px; }
+
+  .entity-grid { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+  .entity-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); overflow: hidden; cursor: pointer; transition: border-color .12s; }
+  .entity-card:hover, .entity-card:focus-visible { border-color: var(--accent); outline: none; }
+  .entity-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .entity-name { font-family: var(--font-mono); font-weight: 600; font-size: 13.5px; }
+  .entity-fields { font-family: var(--font-mono); font-size: 13px; }
+  .field-row {
+    padding: 10px 16px; border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: 200px 170px 1fr; gap: 14px; align-items: baseline;
+  }
+  .field-row:first-child { border-top: none; }
+  .fname { color: var(--ink); font-weight: 600; }
+  .ftype { color: var(--muted); }
+  .fflag { color: var(--accent); font-size: 10.5px; text-transform: uppercase; letter-spacing: .03em; text-align: right; }
+
+  .rel-block { border: 1px dashed var(--line); border-radius: var(--radius); padding: 12px 14px; font-family: var(--font-mono); font-size: 12.5px; display: flex; flex-direction: column; gap: 6px; }
+  .rel-row { display: flex; align-items: center; gap: 8px; }
+  .rel-ent { font-weight: 600; }
+  .rel-kind { color: var(--accent); font-size: 11px; padding: 1px 6px; border: 1px solid var(--accent); border-radius: 4px; }
+  .rel-label { color: var(--muted); margin-left: auto; }
+
+  .pill { font-size: 10.5px; padding: 2px 8px; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+  .pill-added { background: var(--good-soft); color: var(--good); }
+  .pill-modified { background: var(--accent-soft); color: var(--accent); }
+
+  .tree { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--card); }
+  .tree-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .tree-row:last-child { border-bottom: none; }
+  .tree-row:hover, .tree-row:focus-visible { background: var(--accent-soft); outline: none; }
+  .tree-path { font-family: var(--font-mono); font-size: 12.5px; min-width: 260px; }
+  .tree-note { color: var(--muted); font-size: 12.5px; }
+
+  .tabs { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--card); }
+  .tab-bar { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--line); background: var(--paper); padding: 4px; }
+  .tab-btn {
+    font-family: var(--font-mono); font-size: 12px; white-space: nowrap; padding: 7px 12px; border: none;
+    background: transparent; color: var(--muted); border-radius: 6px; cursor: pointer;
+  }
+  .tab-btn.active { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 0 0 1px var(--line); }
+  .tab-panel { display: none; padding: 14px 16px 18px; }
+  .tab-panel.active { display: block; }
+  .tab-summary { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+  .code-block {
+    font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; margin: 0; padding: 12px 14px;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; cursor: pointer;
+  }
+  .code-block:hover, .code-block:focus-visible { border-color: var(--accent); outline: none; }
+  .cl { white-space: pre; }
+  .cl-add { background: var(--good-soft); color: var(--good); }
+  .cl-del { background: var(--bad-soft); color: var(--bad); }
+  .cl-hunk { color: var(--accent); }
+  .cl-ctx { color: var(--ink); }
+
+  .chat-rail {
+    border-left: 1px solid var(--line);
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 380px;
+    position: fixed;
+    top: 0;
+    right: 0;
+  }
+  .chat-header { padding: 18px 18px 12px; border-bottom: 1px solid var(--line); }
+  .chat-title { font-weight: 700; font-size: 14px; }
+  .chat-sub { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .chat-transcript { flex: 1; overflow-y: auto; padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { font-size: 13px; line-height: 1.5; }
+  .msg-q { font-weight: 600; }
+  .msg-a { color: var(--ink); white-space: pre-wrap; }
+  .msg-a.pending { color: var(--muted); font-style: italic; }
+  .msg-ctx-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; margin-bottom: 4px; }
+  .msg-ctx-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); background: var(--paper); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 18px 0; }
+  .chip {
+    display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px;
+    background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 3px 6px 3px 8px;
+  }
+  .chip button { border: none; background: none; color: inherit; cursor: pointer; font-size: 13px; line-height: 1; padding: 0; }
+  .chat-input-row { padding: 12px 18px 18px; display: flex; gap: 8px; }
+  .chat-input {
+    flex: 1; font-family: var(--font-display); font-size: 13px; padding: 9px 11px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--paper); color: var(--ink); resize: none;
+  }
+  .chat-input:focus { outline: none; border-color: var(--accent); }
+  .chat-send {
+    font-family: var(--font-display); font-weight: 700; font-size: 13px; padding: 9px 14px; border-radius: 8px;
+    border: none; background: var(--accent); color: var(--accent-fg); cursor: pointer;
+  }
+  .chat-send:disabled { opacity: 0.5; cursor: default; }
+  .chat-empty { color: var(--muted); font-size: 12.5px; padding: 4px 0; }
+
+  .mode-row { display: flex; gap: 4px; padding: 10px 18px 0; }
+  .mode-btn {
+    font-family: var(--font-display); font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--paper); color: var(--muted); cursor: pointer; flex: 1;
+  }
+  .mode-btn.active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+
+  .msg-posted { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--good); font-weight: 600; }
+  .msg-posted a { color: inherit; }
+  .msg-error { color: var(--bad); font-size: 12.5px; }
+
+  /* per-line annotation hover markers, restored from the plan-recap ERD/diff renderer */
+  .cl-annotated { background: var(--accent-soft); }
+  .ann-marker {
+    display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px;
+    border-radius: 50%; background: var(--accent); color: var(--accent-fg); font-size: 9px; font-weight: 700;
+    margin-right: 6px; cursor: help; flex: none;
+  }
+
+  .ctx-menu {
+    position: fixed; z-index: 50; display: none; flex-direction: column; min-width: 210px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.28); font-family: var(--font-display); font-size: 12.5px;
+  }
+  .ctx-menu button {
+    text-align: left; background: none; border: none; color: var(--ink); padding: 8px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .ctx-menu button:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent); }
+  .ctx-menu button:disabled { color: var(--muted); cursor: default; opacity: 0.6; }
+
+  .confirm-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 60;
+    align-items: center; justify-content: center;
+  }
+  .confirm-overlay.open { display: flex; }
+  .confirm-box { width: 420px; max-width: calc(100vw - 40px); background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .confirm-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .confirm-sub { color: var(--muted); font-size: 12.5px; margin-bottom: 12px; }
+  .confirm-body { font-family: var(--font-mono); font-size: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; margin-bottom: 16px; }
+  .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .confirm-actions button { font-family: var(--font-display); font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
+  .confirm-actions .confirm-post { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  .confirm-actions .confirm-post:disabled { opacity: 0.6; cursor: default; }
+
+  ::selection { background: var(--accent-soft); }
+
+  @media (max-width: 860px) {
+    .main { margin-right: 0; }
+    .chat-rail { height: auto; position: relative; width: auto; border-left: none; border-top: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <main class="main">
+    <div class="eyebrow">local recap</div>
+    <h1>__TITLE__</h1>
+    <p class="brief">__BRIEF__</p>
+    <div class="stat-row">
+      __STATS__
+    </div>
+
+    <p class="narrative">__NARRATIVE__</p>
+
+    <h2>Architecture</h2>
+    <div class="arch-row">
+      __ARCH__
+    </div>
+
+    <h2>Data model</h2>
+    <p class="brief">__DM_INTRO__</p>
+    <div class="entity-grid">
+      __DATA_MODEL__
+    </div>
+    <div class="rel-block">
+      __RELATIONS__
+    </div>
+
+    <h2>Files touched</h2>
+    <div class="tree">
+      __FILE_TREE__
+    </div>
+
+    <h2>Key changes</h2>
+    <div class="tabs">
+      <div class="tab-bar">__TABS_BUTTONS__</div>
+      __TABS_PANELS__
+    </div>
+  </main>
+
+  <aside class="chat-rail">
+    <div class="chat-header">
+      <div class="chat-title">Ask about this PR</div>
+      <div class="chat-sub">Click a block to attach it, or right-click it for more options. Answered live by the watching Claude Code session.</div>
+    </div>
+    <div class="chat-transcript" id="transcript">
+      <div class="chat-empty">No questions yet. Try clicking a table or diff, then ask about it.</div>
+    </div>
+    <div class="chip-row" id="chipRow"></div>
+    <div class="mode-row">
+      <button class="mode-btn active" id="modeAsk" data-mode="ask">Ask Claude</button>
+      <button class="mode-btn" id="modeComment" data-mode="comment">Comment on PR</button>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chatInput" rows="1" placeholder="Ask a question..."></textarea>
+      <button class="chat-send" id="chatSend">Ask</button>
+    </div>
+  </aside>
+</div>
+
+<div class="ctx-menu" id="ctxMenu">
+  <button data-action="chip">Add to chat context</button>
+  <button data-action="source">View source on GitHub &nearr;</button>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Post this publicly to GitHub?</div>
+    <div class="confirm-sub" id="confirmSub"></div>
+    <div class="confirm-body" id="confirmBody"></div>
+    <div class="confirm-actions">
+      <button id="confirmCancel">Cancel</button>
+      <button id="confirmPost" class="confirm-post">Post comment</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var chips = [];
+  var mode = "ask";
+  var transcript = document.getElementById("transcript");
+  var chipRow = document.getElementById("chipRow");
+  var input = document.getElementById("chatInput");
+  var sendBtn = document.getElementById("chatSend");
+  var modeAsk = document.getElementById("modeAsk");
+  var modeComment = document.getElementById("modeComment");
+  var ctxMenu = document.getElementById("ctxMenu");
+  var confirmOverlay = document.getElementById("confirmOverlay");
+  var confirmBody = document.getElementById("confirmBody");
+  var confirmSub = document.getElementById("confirmSub");
+  var confirmPost = document.getElementById("confirmPost");
+  var confirmCancel = document.getElementById("confirmCancel");
+
+  function esc(s) {
+    var d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function renderChips() {
+    chipRow.innerHTML = "";
+    chips.forEach(function (c, i) {
+      var el = document.createElement("div");
+      el.className = "chip";
+      el.innerHTML = '<span>' + esc(c.title) + '</span>';
+      var btn = document.createElement("button");
+      btn.textContent = "×";
+      btn.onclick = function () { chips.splice(i, 1); renderChips(); };
+      el.appendChild(btn);
+      chipRow.appendChild(el);
+    });
+  }
+
+  function addChip(title, body) {
+    if (chips.some(function (c) { return c.title === title; })) return;
+    chips.push({ title: title, body: body });
+    renderChips();
+  }
+
+  document.querySelectorAll("[data-ctx-title]").forEach(function (el) {
+    el.addEventListener("click", function () {
+      addChip(el.getAttribute("data-ctx-title"), el.getAttribute("data-ctx-body"));
+    });
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        addChip(el.getAttribute("data-ctx-title"), el.getAttribute("data-ctx-body"));
+      }
+    });
+    el.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+      openCtxMenu(e.clientX, e.clientY, el);
+    });
+  });
+
+  // right-click menu: add to chat context, or jump to the real GitHub source
+  var menuTarget = null;
+  function openCtxMenu(x, y, el) {
+    menuTarget = el;
+    var srcBtn = ctxMenu.querySelector('[data-action="source"]');
+    var srcUrl = el.getAttribute("data-src-url");
+    srcBtn.disabled = !srcUrl;
+    srcBtn.textContent = srcUrl ? "View source on GitHub ↗" : "No source link for this block";
+    ctxMenu.style.display = "flex";
+    var menuW = 220, menuH = 90;
+    ctxMenu.style.left = Math.min(x, window.innerWidth - menuW - 10) + "px";
+    ctxMenu.style.top = Math.min(y, window.innerHeight - menuH - 10) + "px";
+  }
+  function closeCtxMenu() { ctxMenu.style.display = "none"; menuTarget = null; }
+  document.addEventListener("click", function (e) {
+    if (!ctxMenu.contains(e.target)) closeCtxMenu();
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeCtxMenu(); });
+  ctxMenu.querySelector('[data-action="chip"]').addEventListener("click", function () {
+    if (menuTarget) addChip(menuTarget.getAttribute("data-ctx-title"), menuTarget.getAttribute("data-ctx-body"));
+    closeCtxMenu();
+  });
+  ctxMenu.querySelector('[data-action="source"]').addEventListener("click", function () {
+    var url = menuTarget && menuTarget.getAttribute("data-src-url");
+    if (url) window.open(url, "_blank", "noopener");
+    closeCtxMenu();
+  });
+
+  function parseLineSpec(spec) {
+    var parts = String(spec).split("-").map(function (n) { return parseInt(n, 10); });
+    return { start: parts[0], end: parts.length > 1 ? parts[1] : parts[0] };
+  }
+
+  // colorize diff/code blocks from their raw text and overlay per-line annotations
+  document.querySelectorAll(".code-block").forEach(function (block) {
+    var raw = JSON.parse(block.getAttribute("data-raw"));
+    var annotations = JSON.parse(block.getAttribute("data-annotations") || "[]");
+    var isDiff = block.classList.contains("diff");
+    var lines = raw.split("\n");
+    var newNo = 0, oldNo = 0;
+    var html = "";
+    lines.forEach(function (line) {
+      var cls = "cl-ctx";
+      var newN = null, oldN = null;
+      if (isDiff) {
+        var m = line.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+        if (m) {
+          cls = "cl-hunk";
+          oldNo = parseInt(m[1], 10);
+          newNo = parseInt(m[2], 10);
+          html += '<div class="cl ' + cls + '">' + (esc(line) || "&nbsp;") + "</div>";
+          return;
+        }
+        if (line.indexOf("+") === 0) { cls = "cl-add"; newN = newNo; newNo++; }
+        else if (line.indexOf("-") === 0) { cls = "cl-del"; oldN = oldNo; oldNo++; }
+        else { newN = newNo; oldN = oldNo; newNo++; oldNo++; }
+      } else {
+        newNo++; newN = newNo; oldN = newNo;
+      }
+
+      var marker = "";
+      annotations.forEach(function (a) {
+        var range = parseLineSpec(a.lines);
+        var target = a.side === "before" ? oldN : newN;
+        if (target != null && target >= range.start && target <= range.end) {
+          cls += " cl-annotated";
+          if (target === range.start) {
+            marker = '<span class="ann-marker" title="' + esc(a.label ? a.label + ": " + a.note : a.note) + '">i</span>';
+          }
+        }
+      });
+
+      html += '<div class="cl ' + cls + '">' + marker + (esc(line) || "&nbsp;") + "</div>";
+    });
+    block.innerHTML = html;
+  });
+
+  // tabs
+  document.querySelectorAll(".tab-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".tab-btn").forEach(function (b) { b.classList.remove("active"); });
+      document.querySelectorAll(".tab-panel").forEach(function (p) { p.classList.remove("active"); });
+      btn.classList.add("active");
+      document.querySelector('[data-tab-panel="' + btn.getAttribute("data-tab") + '"]').classList.add("active");
+    });
+  });
+
+  // ask/comment mode toggle
+  function setMode(m) {
+    mode = m;
+    modeAsk.classList.toggle("active", m === "ask");
+    modeComment.classList.toggle("active", m === "comment");
+    input.placeholder = m === "ask" ? "Ask a question..." : "Write a review comment...";
+    sendBtn.textContent = m === "ask" ? "Ask" : "Comment";
+  }
+  modeAsk.addEventListener("click", function () { setMode("ask"); });
+  modeComment.addEventListener("click", function () { setMode("comment"); });
+
+  function addMessage(question, ctxTitles) {
+    var empty = transcript.querySelector(".chat-empty");
+    if (empty) empty.remove();
+    var wrap = document.createElement("div");
+    wrap.className = "msg";
+    var ctxHtml = "";
+    if (ctxTitles.length) {
+      ctxHtml = '<div class="msg-ctx-list">' + ctxTitles.map(function (t) {
+        return '<span class="msg-ctx-tag">' + esc(t) + "</span>";
+      }).join("") + "</div>";
+    }
+    wrap.innerHTML = '<div class="msg-q">' + esc(question) + "</div>" + ctxHtml + '<div class="msg-a pending">thinking&hellip;</div>';
+    transcript.appendChild(wrap);
+    transcript.scrollTop = transcript.scrollHeight;
+    return wrap.querySelector(".msg-a");
+  }
+
+  function poll(id, answerEl, attempt) {
+    attempt = attempt || 0;
+    fetch("/answer/" + id).then(function (r) { return r.json(); }).then(function (data) {
+      if (data.status === "done") {
+        answerEl.textContent = data.answer;
+        answerEl.classList.remove("pending");
+        transcript.scrollTop = transcript.scrollHeight;
+      } else if (attempt > 400) {
+        answerEl.textContent = "No answer yet -- is a Claude Code session watching the queue?";
+        answerEl.classList.remove("pending");
+      } else {
+        setTimeout(function () { poll(id, answerEl, attempt + 1); }, 1200);
+      }
+    });
+  }
+
+  function askClaude() {
+    var q = input.value.trim();
+    if (!q) return;
+    var ctxTitles = chips.map(function (c) { return c.title; });
+    var answerEl = addMessage(q, ctxTitles);
+    var body = { question: q, context: chips };
+    input.value = "";
+    chips = [];
+    renderChips();
+    fetch("/ask", { method: "POST", body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); })
+      .then(function (data) { poll(data.id, answerEl); });
+  }
+
+  // comment-on-PR flow: never posts silently -- always shows the exact body first
+  var pendingComment = null;
+  function openCommentConfirm() {
+    var text = input.value.trim();
+    if (!text) return;
+    var lines = chips.map(function (c) { return "Re \`" + c.title + "\`"; });
+    confirmSub.textContent = lines.length ? "Attached: " + lines.join(", ") : "No block attached.";
+    confirmBody.textContent = text;
+    pendingComment = { comment: text, context: chips.slice() };
+    confirmOverlay.classList.add("open");
+  }
+  confirmCancel.addEventListener("click", function () {
+    confirmOverlay.classList.remove("open");
+    pendingComment = null;
+  });
+  confirmPost.addEventListener("click", function () {
+    if (!pendingComment) return;
+    confirmPost.disabled = true;
+    confirmPost.textContent = "Posting...";
+    fetch("/comment", { method: "POST", body: JSON.stringify(pendingComment) })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var ctxTitles = pendingComment.context.map(function (c) { return c.title; });
+        var msgEl = addMessage(pendingComment.comment, ctxTitles);
+        if (data.status === "posted") {
+          msgEl.innerHTML = '<span class="msg-posted">&#10003; Posted' +
+            (data.url ? ' &mdash; <a href="' + esc(data.url) + '" target="_blank" rel="noopener">view on GitHub</a>' : "") +
+            "</span>";
+        } else {
+          msgEl.innerHTML = '<span class="msg-error">Failed to post: ' + esc(data.message || "unknown error") + "</span>";
+        }
+        msgEl.classList.remove("pending");
+        input.value = "";
+        chips = [];
+        renderChips();
+        confirmOverlay.classList.remove("open");
+        confirmPost.disabled = false;
+        confirmPost.textContent = "Post comment";
+        pendingComment = null;
+      });
+  });
+
+  function send() {
+    if (mode === "ask") askClaude();
+    else openCommentConfirm();
+  }
+
+  sendBtn.addEventListener("click", send);
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  });
+})();
+</script>
+</body>
+</html>
