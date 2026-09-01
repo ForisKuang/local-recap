@@ -279,3 +279,60 @@ because the rail eats the right side) or anchored to one edge (which is
 what the combined-margin bug produces). Verify by actually resizing the
 browser window wide, not just eyeballing the default size -- this bug is
 invisible at typical laptop widths and only shows up past roughly 1600px.
+
+**Make the rail resizable by drag, not just fixed-width.** A chat rail
+sized for a quick answer feels cramped once the conversation grows or
+someone pastes a long answer back in -- give it a drag handle instead of a
+hardcoded width. Put the width on a CSS custom property so both `.layout`'s
+offset and `.rail`'s own width stay in sync from one source of truth:
+
+```css
+:root { --rail-w: 380px; }
+.layout { display: flex; margin-right: var(--rail-w); }
+.rail { position: fixed; top: 0; right: 0; width: var(--rail-w); height: 100vh; }
+.rail-resize-handle {
+  position: absolute; top: 0; left: -5px; width: 9px; height: 100%;
+  cursor: col-resize; z-index: 41; touch-action: none;
+}
+```
+
+Drive it with Pointer Events (covers mouse, touch, and pen in one listener
+set, unlike separate `mousedown`/`touchstart` handlers), clamp so the rail
+can't crush `.main` or blow past a sane fraction of the viewport, and
+persist the chosen width to `localStorage` so it survives a reload of the
+same page:
+
+```js
+(function initRailResize() {
+  const RAIL_MIN = 320, STORAGE_KEY = "local-recap-rail-w";
+  const root = document.documentElement;
+  const handle = document.getElementById("rail-resize-handle");
+  function railMax() { return Math.max(RAIL_MIN, Math.min(900, window.innerWidth * 0.7)); }
+  function setRailWidth(px) {
+    const w = Math.max(RAIL_MIN, Math.min(railMax(), px));
+    root.style.setProperty("--rail-w", w + "px");
+    return w;
+  }
+  const saved = parseFloat(localStorage.getItem(STORAGE_KEY));
+  if (!Number.isNaN(saved)) setRailWidth(saved);
+  let dragging = false;
+  handle.addEventListener("pointerdown", (e) => {
+    dragging = true; handle.setPointerCapture(e.pointerId);
+    document.body.style.userSelect = "none";
+  });
+  handle.addEventListener("pointermove", (e) => { if (dragging) setRailWidth(window.innerWidth - e.clientX); });
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.userSelect = "";
+    localStorage.setItem(STORAGE_KEY, parseFloat(getComputedStyle(root).getPropertyValue("--rail-w")));
+  }
+  handle.addEventListener("pointerup", endDrag);
+  handle.addEventListener("pointercancel", endDrag);
+})();
+```
+
+Give the handle a hover/drag affordance (a thin line that brightens on
+`:hover`/`.dragging`, not a wide visible bar) and set `display: none` on it
+under the mobile breakpoint, where the rail drops to static full-width flow
+and dragging a column no longer means anything.
