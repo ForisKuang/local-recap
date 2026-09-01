@@ -192,7 +192,7 @@ is a personal/dev tool, not a service you leave running unattended.
 - Keep the page lean -- don't pad with boilerplate about what the page is;
   the narrative should say what changed and why, nothing else.
 
-## Layout gotcha
+## Layout gotchas
 
 `position: sticky` on the chat rail does not reliably stay pinned once the
 main column grows past a few screens of content in a plain two-column
@@ -200,3 +200,34 @@ document flow. Use `position: fixed; top: 0; right: 0; height: 100vh` for
 the rail instead, with `margin-right: <rail-width>` on the main column (and
 drop both to normal flow under the mobile breakpoint). Don't spend time
 debugging why `sticky` "isn't sticking" -- just use `fixed`.
+
+**Don't put `margin-right: <rail-width>` on the same element you're also
+centering with `margin: 0 auto`.** `margin: 0 auto` sets the left margin to
+`auto`; a later `margin-right: <rail-width>` only overrides the right side,
+leaving the left `auto`. On a normal-width screen this looks fine by
+accident, but on a large/ultra-wide monitor the `auto` left margin balloons
+to fill all the leftover space, so the content column drifts to hug the
+rail's left edge with a large dead gap on the left instead of staying
+centered in the space left of the rail -- the exact "not responsive on a
+larger screen" symptom. Put the rail-width offset on the *outer* flex
+container instead, and let the main column center inside that already-
+narrowed box:
+
+```css
+.layout { display: flex; margin-right: <rail-width>; }  /* offset lives here */
+.main {
+  flex: 1;
+  min-width: 0;
+  max-width: <content-max-width>;
+  margin: 0 auto;                                        /* pure centering */
+  padding: 56px 40px 120px;
+}
+.rail { position: fixed; top: 0; right: 0; width: <rail-width>; height: 100vh; }
+```
+
+This keeps `.main` centered in the viewport-minus-rail region at every
+viewport width, rather than centered in the full viewport (which is wrong
+because the rail eats the right side) or anchored to one edge (which is
+what the combined-margin bug produces). Verify by actually resizing the
+browser window wide, not just eyeballing the default size -- this bug is
+invisible at typical laptop widths and only shows up past roughly 1600px.
