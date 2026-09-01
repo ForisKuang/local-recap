@@ -54,6 +54,54 @@ is a personal/dev tool, not a service you leave running unattended.
      touches schema -- reproduce real column names/types, never invent them.
    - Diffs/new files as syntax-colored `<pre>` blocks (before/after side by
      side for real diffs, single block for new files).
+   - **Syntax-highlight code like an IDE, not just diff-colored.** A single
+     flat text color per line (only red/green for del/add) is hard to scan --
+     readers expect keywords, strings, comments, and numbers to differ in
+     color the way an editor renders them. No CDN highlighter is allowed
+     (locality is the whole point of this skill), so hand-roll a small
+     regex tokenizer inline in the page instead of pulling in highlight.js/
+     Prism. Pattern: one `RegExp` per language with named capture groups per
+     token class, scanned with `exec`+`lastIndex` so unmatched text passes
+     through escaped and matched text gets wrapped in a `<span
+     class="tok-...">`:
+     ```js
+     const LANG_REGEX = {
+       python: /(?<com>#.*)|(?<str>"""[^]*?"""|'''[^]*?'''|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(?<num>\b\d+\.?\d*\b)|(?<deco>@\w+)|(?<kw>\b(?:def|class|import|from|as|return|if|elif|else|for|while|in|not|and|or|is|None|True|False|try|except|finally|raise|with|lambda|yield|pass|break|continue|self|cls)\b)|(?<fn>\b[A-Za-z_]\w*(?=\())/g,
+       sql: /(?<com>--.*)|(?<str>'(?:[^'\\]|\\.)*')|(?<num>\b\d+\.?\d*\b)|(?<kw>\b(?:SELECT|FROM|WHERE|CREATE|ROW|POLICY|USING|TO|AS|JOIN|GROUP|BY|LIMIT)\b)|(?<fn>\b[A-Za-z_]\w*(?=\())/gi,
+       // add js, json, bash, yaml (or whatever languages the diff actually touches) the same way
+     };
+     function tokenize(line, lang) {
+       const re = LANG_REGEX[lang];
+       if (!re) return escHtml(line);
+       re.lastIndex = 0;
+       let out = "", last = 0, m;
+       while ((m = re.exec(line))) {
+         if (m.index > last) out += escHtml(line.slice(last, m.index));
+         const cls = Object.keys(m.groups).find(k => m.groups[k] !== undefined);
+         out += `<span class="tok-${cls}">${escHtml(m[0])}</span>`;
+         last = re.lastIndex;
+         if (m[0].length === 0) re.lastIndex++;   // guard against zero-width matches
+       }
+       out += escHtml(line.slice(last));
+       return out;
+     }
+     ```
+     Only build regexes for languages the actual diff touches (check file
+     extensions first) -- don't pre-write a library of languages nobody
+     needs. Derive `lang` from the file extension (`.py` -> `python`, `.sql`
+     -> `sql`, etc.) and call `tokenize(text, lang)` in place of `escHtml(text)`
+     wherever a code/diff line is rendered; for diff lines, tokenize only the
+     text *after* the leading `+`/`-`/space marker so the marker itself stays
+     plain. Give each token class its own CSS color (`.tok-kw`, `.tok-str`,
+     `.tok-com` italic, `.tok-num`, `.tok-fn`, `.tok-deco`, plus `.tok-key`/
+     `.tok-flag` for YAML keys / shell flags if needed) -- since the code
+     block background is conventionally dark regardless of page theme, one
+     palette works for both light and dark page themes; just make sure it
+     contrasts against `--code-bg`. This is intentionally a "good enough"
+     line-by-line tokenizer, not a real parser -- multi-line constructs (e.g.
+     a Python triple-quoted string spanning several lines) only get colored
+     correctly on the line where both delimiters appear together, which is
+     an acceptable tradeoff for a recap page.
    - Architecture diagram as simple flex/grid boxes if the diff is
      structural -- see `visual-plan`'s `references/wireframe.md` for the
      `--wf-*` token discipline; reuse that palette approach here even though
