@@ -50,6 +50,26 @@ is a personal/dev tool, not a service you leave running unattended.
    library here:
    - Narrative section: what changed and why, grounded in the diff.
    - File tree with change badges.
+   - **A curated `## Key changes` section, separate from the full file-tree
+     diff appendix** -- this is `visual-recap`'s canonical shape and it
+     applies here too: don't flatten every changed file into one
+     equal-weight list. Pick the 3-8 files that actually carry the change's
+     design (skip pure renames, mechanical call-site fixups, dependency
+     bumps, and codegen output -- collapse those into their own lower-key
+     sections instead, e.g. "Mechanical changes" / "Generated", each just a
+     one-line note + a link to the raw diff on GitHub). Render the key
+     changes as one horizontal tab bar (a row of `<button class="tab-btn">`,
+     one per file, not a vertical rail -- the selected file needs the full
+     content width) with a plain-JS `switchTab()` toggling an `active` class
+     on the matching `.tab-panel`. Give each tab a one-line `summary` (what
+     this file's diff does and why it matters) above its diff, and put
+     annotations only on the load-bearing hunks. Every other substantive
+     file still gets shown in full further down the page (local-recap's
+     interrogate-any-line premise means nothing needs to be link-only just
+     for not being "key"), just without the tab treatment or the front-page
+     billing. If the user pushes back that a first pass showed everything
+     undifferentiated, this is the fix -- re-tier into key/other/mechanical/
+     generated rather than trimming content out.
    - Data model as plain cards (entity name, fields, PK/FK flags) if the diff
      touches schema -- reproduce real column names/types, never invent them.
    - Diffs/new files as syntax-colored `<pre>` blocks (before/after side by
